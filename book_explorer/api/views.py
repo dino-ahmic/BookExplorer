@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from base.models import Book
-from .serializers import BookSerializer, UserSerializer, UserRegistrationSerializer
+from base.models import Book, BookNote
+from .serializers import BookSerializer, BookNoteSerializer, UserSerializer, UserRegistrationSerializer
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -55,7 +55,72 @@ def deleteBook(request, pk):
         return Response({"message": "Book deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Book.DoesNotExist:
         return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_book_notes(request, book_id):
+    try:
+        book = Book.objects.get(id=book_id)
+        notes = BookNote.objects.filter(user=request.user, book=book)
+        serializer = BookNoteSerializer(notes, many=True)
+        return Response(serializer.data)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_book_note(request, book_id):
+    try:
+        book = Book.objects.get(id=book_id)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = BookNoteSerializer(data={
+        'content': request.data.get('content'),
+        'book': book.id,
+    })
     
+    if serializer.is_valid():
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_note(request, note_id):
+    try:
+        note = BookNote.objects.get(id=note_id)
+        if note.user != request.user:
+            return Response(
+                {"error": "You don't have permission to modify this note"}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = BookNoteSerializer(note, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except BookNote.DoesNotExist:
+        return Response({"error": "Note not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_note(request, note_id):
+    try:
+        note = BookNote.objects.get(id=note_id)
+        if note.user != request.user:
+            return Response(
+                {"error": "You don't have permission to delete this note"}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        note.delete()
+        return Response({"message": "Note deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    except BookNote.DoesNotExist:
+        return Response({"error": "Note not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

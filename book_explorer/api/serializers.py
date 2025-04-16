@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from base.models import Book
+from base.models import Book, BookNote
 from django.contrib.auth.models import User
 
 class BookSerializer(serializers.ModelSerializer):
@@ -7,17 +7,23 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         fields = '__all__'
 
+class BookNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookNote
+        fields = ['id', 'book', 'content', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'password2']
+        fields = ['username', 'email', 'password', 'password2', 'first_name', 'last_name']
         extra_kwargs = {
             'password': {'write_only': True}
         }

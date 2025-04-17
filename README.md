@@ -49,3 +49,34 @@ npm start
 
 The application will be available at
 http://localhost:3000
+
+### Dependency Management
+## Backend Dependencies
+Django 5.2
+
+Django REST Framework
+
+Django CORS Headers
+
+Simple JWT for authentication
+
+Other dependencies are listed in
+```bash
+requirements.txt
+```
+
+## Frontend Dependencies
+React 19.1.0
+
+Material-UI 7.0.2
+
+Axios for API calls
+
+React Router for navigation
+
+Date-fns for date formatting
+
+Dependencies are managed through
+```bash
+package.json
+```

@@ -5,6 +5,7 @@ import Navbar from './components/Layout/Navbar';
 import LoginForm from './components/Auth/LoginForm';
 import RegisterForm from './components/Auth/RegisterForm';
 import BookList from './components/Books/BookList';
+import BookDetails from './components/Books/BookDetails';
 import { Container, CssBaseline } from '@mui/material';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
               <Route path="/books" element={<BookList />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
+              <Route path="/books/:id" element={<BookDetails />} />
             </Routes>
           </Container>
         </div>

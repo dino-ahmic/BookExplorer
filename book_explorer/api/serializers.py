@@ -7,16 +7,20 @@ class BookSerializer(serializers.ModelSerializer):
         model = Book
         fields = '__all__'
 
-class BookNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BookNote
-        fields = ['id', 'book', 'content', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name')
+
+class BookNoteSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = BookNote
+        fields = ['id', 'book', 'content', 'created_at', 'updated_at', 'user', 'username']
+        read_only_fields = ['created_at', 'updated_at', 'user', 'username']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)

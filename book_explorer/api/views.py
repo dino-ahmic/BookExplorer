@@ -11,9 +11,30 @@ from .serializers import BookSerializer, BookNoteSerializer, UserSerializer, Use
 @permission_classes([AllowAny])
 def getBooks(request):
     books = Book.objects.all()
+    
+    # Filtering
+    title_query = request.query_params.get('title', None)
+    author_query = request.query_params.get('author', None)
+    genre_query = request.query_params.get('genre', None)
+    
+    if title_query:
+        books = books.filter(title__icontains=title_query)
+    if author_query:
+        books = books.filter(author__icontains=author_query)
+    if genre_query:
+        books = books.filter(genre__icontains=genre_query)
+    
+    # Sorting
+    sort_by = request.query_params.get('sort', 'title')
+    sort_order = request.query_params.get('order', 'asc')
+    
+    if sort_order == 'desc':
+        sort_by = f'-{sort_by}'
+    
+    books = books.order_by(sort_by)
+    
     serializer = BookSerializer(books, many=True)
     return Response(serializer.data)
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getBookById(request, pk):
@@ -58,11 +79,11 @@ def deleteBook(request, pk):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_book_notes(request, book_id):
     try:
         book = Book.objects.get(id=book_id)
-        notes = BookNote.objects.filter(user=request.user, book=book)
+        notes = BookNote.objects.filter(book=book)
         serializer = BookNoteSerializer(notes, many=True)
         return Response(serializer.data)
     except Book.DoesNotExist:
@@ -90,36 +111,30 @@ def create_book_note(request, book_id):
 @permission_classes([IsAuthenticated])
 def update_note(request, note_id):
     try:
-        note = BookNote.objects.get(id=note_id)
-        if note.user != request.user:
-            return Response(
-                {"error": "You don't have permission to modify this note"}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
+        note = BookNote.objects.get(id=note_id, user=request.user)
         serializer = BookNoteSerializer(note, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except BookNote.DoesNotExist:
-        return Response({"error": "Note not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Note not found or you don't have permission to edit it"}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_note(request, note_id):
     try:
-        note = BookNote.objects.get(id=note_id)
-        if note.user != request.user:
-            return Response(
-                {"error": "You don't have permission to delete this note"}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
+        note = BookNote.objects.get(id=note_id, user=request.user)
         note.delete()
         return Response({"message": "Note deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except BookNote.DoesNotExist:
-        return Response({"error": "Note not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Note not found or you don't have permission to delete it"}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 @api_view(['POST'])
@@ -143,18 +158,28 @@ def login_user(request):
     password = request.data.get('password')
 
     if not username or not password:
-        return Response({'error': 'Please provide both username and password'},
-                      status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'error': 'Please provide both username and password'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     user = authenticate(username=username, password=password)
 
     if user:
         refresh = RefreshToken.for_user(user)
         return Response({
-            'user': UserSerializer(user).data,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         })
     else:
-        return Response({'error': 'Invalid credentials'},
-                      status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {'error': 'Invalid credentials'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )

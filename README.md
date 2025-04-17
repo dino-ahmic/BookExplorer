@@ -55,8 +55,8 @@ npm start
 The application will be available at
 http://localhost:3000
 
-### Dependency Management
-## Backend Dependencies
+## Dependency Management
+### Backend Dependencies
 Django 5.2
 
 Django REST Framework
@@ -70,7 +70,7 @@ Other dependencies are listed in
 requirements.txt
 ```
 
-## Frontend Dependencies
+### Frontend Dependencies
 React 19.1.0
 
 Material-UI 7.0.2
@@ -85,3 +85,36 @@ Dependencies are managed through
 ```bash
 package.json
 ```
+
+## Running Tests
+
+### Backend Tests
+Run Django tests:
+```bash
+python manage.py test
+```
+
+## Features Implementation
+### Core Features
+#### Authentication System
+
+● JWT-based authentication
+
+● User registration and login
+
+
+#### Book Management
+
+● Comprehensive book listing
+
+● Detailed book views
+
+● Search and filter functionality
+
+● Rating system (1-10 scale)
+
+#### Personal Features
+
+● Reading list management
+
+● Personal notes for books

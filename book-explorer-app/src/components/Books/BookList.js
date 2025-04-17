@@ -23,6 +23,7 @@ import { Link } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import ClearIcon from '@mui/icons-material/Clear';
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
@@ -104,6 +105,16 @@ const BookList = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      title: '',
+      author: '',
+      genre: '',
+    });
+    setSortBy('title');
+    setSortOrder('asc');
+  };
+
   return (
     <Container maxWidth="lg">
       <Typography variant="h4" component="h1" gutterBottom sx={{ mt: 4, mb: 4 }}>
@@ -111,6 +122,16 @@ const BookList = () => {
       </Typography>
 
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, marginBottom: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={handleClearFilters}
+                startIcon={<ClearIcon />}
+                sx={{ ml: 2 }}
+              >
+                Clear Filters
+              </Button>
+        </Grid>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             <TextField

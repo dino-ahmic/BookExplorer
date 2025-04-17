@@ -13,6 +13,7 @@ import {
   Alert,
   CircularProgress,
   Rating,
+  Snackbar
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
@@ -31,6 +32,15 @@ const BookDetails = () => {
   const [error, setError] = useState(null);
   const [userRating, setUserRating] = useState(0);
   const { user } = useAuth();
+  const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: '',
+      severity: 'success'
+    });
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const fetchBookAndNotes = async () => {
     try {
@@ -104,6 +114,23 @@ const BookDetails = () => {
     }
   };
 
+  const handleAddToReadingList = async () => {
+    try {
+      await api.post(`/reading-list/add/${id}/`);
+      setSnackbar({
+        open: true,
+        message: "Book successfully added to your reading list!",
+        severity: 'success'
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Failed to add book to reading list. Please try again.",
+        severity: 'error'
+      });
+    }
+  };
+
   const formatDate = (dateString) => {
     try {
       return format(new Date(dateString), 'MMM d, yyyy hh:mm a');
@@ -167,11 +194,18 @@ const BookDetails = () => {
                 <Typography variant="body2" color="text.secondary">
                 {book?.total_ratings || 0} ratings
                 </Typography>
-                {!user && (
+                {!user ?
                 <Typography variant="caption" color="text.secondary">
                     Please log in to rate
                 </Typography>
-                )}
+                : <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddToReadingList}
+                sx={{ mt: 1 }}
+              >
+                Add to Reading List
+              </Button>}
             </Box>
             </Box>
 
@@ -299,8 +333,24 @@ const BookDetails = () => {
         </Box>
       </Box>
       : <Typography variant="h6" gutterBottom>
-      This book does not have reviews.
+      This book does not have any review.
     </Typography>}
+    <Snackbar
+          open={snackbar.open}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleSnackbarClose} 
+            severity={snackbar.severity}
+            sx={{ width: '100%' }}
+            elevation={6}
+            variant="filled"
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
     </Container>
   );
 };

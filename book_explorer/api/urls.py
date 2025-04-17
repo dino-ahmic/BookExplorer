@@ -5,9 +5,6 @@ from rest_framework_simplejwt.views import TokenRefreshView
 urlpatterns = [
     path('books/', views.getBooks, name='get-books'),
     path('books/<int:pk>/', views.getBookById, name='get-book-by-id'),
-    path('books/add/', views.addBook, name='add-book'),
-    path('books/update/<int:pk>/', views.updateBook, name='update-book'),
-    path('books/delete/<int:pk>/', views.deleteBook, name='delete-book'),
 
     path('books/<int:book_id>/notes/', views.get_book_notes, name='get-book-notes'),
     path('books/<int:book_id>/notes/create/', views.create_book_note, name='create-book-note'),

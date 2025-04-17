@@ -1,4 +1,4 @@
-﻿# Python
+# Django Backend
 *.py[cod]
 __pycache__/
 *.so
@@ -19,14 +19,14 @@ wheels/
 .installed.cfg
 *.egg
 
-# Django
+# Django specific
 *.log
 *.pot
 *.pyc
 db.sqlite3
 db.sqlite3-journal
 media
-static
+/static/
 
 # Virtual Environment
 venv/
@@ -34,83 +34,58 @@ ENV/
 env/
 .env
 
-# VS Code
+# React Frontend
+# dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE specific files
 .vscode/
 *.code-workspace
-
-# PyCharm
 .idea/
 *.iml
 *.iws
 *.ipr
 
-# Local development settings
-local_settings.py
-
-# Database migrations (optional, depending on your workflow)
-# */migrations/*.py
-# !*/migrations/__init__.py
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# macOS
+# System Files
 .DS_Store
+Thumbs.db
 .AppleDouble
 .LSOverride
-
-# Windows
-Thumbs.db
-ehthumbs.db
 Desktop.ini
+
+# Local development settings
+local_settings.py
 
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
-.cache
-nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
-cover/
-
-# Translations
-*.mo
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
 # Environment variables
 .env
 .venv
-env/
-venv/
-ENV/
 env.bak/
 venv.bak/
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/

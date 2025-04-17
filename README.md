@@ -6,6 +6,11 @@ BookExplorer is a full-stack web application that allows users to explore, rate,
 
 ### Backend Setup
 
+1. Navigate to the beckend directory:
+```bash
+cd book_explorer
+```
+
 1. Create and activate a virtual environment:
 ```bash
 python -m venv venv

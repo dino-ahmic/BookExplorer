@@ -10,6 +10,7 @@ BookExplorer is a full-stack web application that allows users to explore, rate,
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+```bash
 
 2. Install dependencies:
 pip install -r requirements.txt

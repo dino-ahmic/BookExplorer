@@ -1,6 +1,4 @@
 import React from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import {
   AppBar,
   Toolbar,
@@ -8,63 +6,38 @@ import {
   Button,
   Box,
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography
-          variant="h6"
-          component={RouterLink}
-          to="/"
-          sx={{
-            flexGrow: 1,
-            textDecoration: 'none',
-            color: 'inherit',
-          }}
-        >
-          Book Explorer
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          BookApp
         </Typography>
-        <Box>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button color="inherit" component={RouterLink} to="/">
+            Home
+          </Button>
           {user ? (
             <>
-              <Typography
-                variant="subtitle1"
-                component="span"
-                sx={{ mr: 2 }}
-              >
-                Welcome, {user.username}
-              </Typography>
-              <Button
-                color="inherit"
-                onClick={handleLogout}
-              >
+              <Button color="inherit" component={RouterLink} to="/reading-list">
+                Reading List
+              </Button>
+              <Button color="inherit" onClick={logout}>
                 Logout
               </Button>
             </>
           ) : (
             <>
-              <Button
-                color="inherit"
-                component={RouterLink}
-                to="/login"
-              >
-                Sign In
+              <Button color="inherit" component={RouterLink} to="/login">
+                Login
               </Button>
-              <Button
-                color="inherit"
-                component={RouterLink}
-                to="/register"
-              >
-                Sign Up
+              <Button color="inherit" component={RouterLink} to="/register">
+                Register
               </Button>
             </>
           )}

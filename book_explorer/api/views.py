@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from base.models import Book, BookNote, BookRating
-from .serializers import BookSerializer, BookNoteSerializer, UserSerializer, UserRegistrationSerializer, BookRatingSerializer
+from base.models import Book, BookNote, BookRating, ReadingList
+from .serializers import BookSerializer, BookNoteSerializer, UserSerializer, UserRegistrationSerializer, BookRatingSerializer, ReadingListSerializer
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -183,6 +183,41 @@ def rate_book(request, book_id):
             {"error": "Book not found"}, 
             status=status.HTTP_404_NOT_FOUND
         )
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_reading_list(request):
+    reading_list = ReadingList.objects.filter(user=request.user)
+    serializer = ReadingListSerializer(reading_list, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_to_reading_list(request, book_id):
+    try:
+        book = Book.objects.get(id=book_id)
+        reading_list_item, created = ReadingList.objects.get_or_create(
+            user=request.user,
+            book=book
+        )
+        if created:
+            return Response({"message": "Book added to reading list"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Book already in reading list"}, status=status.HTTP_200_OK)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def remove_from_reading_list(request, book_id):
+    try:
+        reading_list_item = ReadingList.objects.get(
+            user=request.user,
+            book_id=book_id
+        )
+        reading_list_item.delete()
+        return Response({"message": "Book removed from reading list"}, status=status.HTTP_204_NO_CONTENT)
+    except ReadingList.DoesNotExist:
+        return Response({"error": "Book not found in reading list"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

@@ -6,6 +6,7 @@ import LoginForm from './components/Auth/LoginForm';
 import RegisterForm from './components/Auth/RegisterForm';
 import BookList from './components/Books/BookList';
 import BookDetails from './components/Books/BookDetails';
+import ReadingList from './components/ReadingList/ReadingList';
 import { Container, CssBaseline } from '@mui/material';
 
 function App() {
@@ -19,9 +20,10 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/books" replace />} />
               <Route path="/books" element={<BookList />} />
+              <Route path="/books/:id" element={<BookDetails />} />
+              <Route path="/reading-list" element={<ReadingList />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
-              <Route path="/books/:id" element={<BookDetails />} />
             </Routes>
           </Container>
         </div>

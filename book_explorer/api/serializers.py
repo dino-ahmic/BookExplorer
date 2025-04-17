@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from base.models import Book, BookNote, BookRating
+from base.models import Book, BookNote, BookRating, ReadingList
 from django.contrib.auth.models import User
 
 class BookSerializer(serializers.ModelSerializer):
@@ -41,6 +41,13 @@ class BookRatingSerializer(serializers.ModelSerializer):
         model = BookRating
         fields = ['id', 'rating', 'created_at', 'username']
         read_only_fields = ['created_at', 'username']
+
+class ReadingListSerializer(serializers.ModelSerializer):
+    book = BookSerializer(read_only=True)
+    
+    class Meta:
+        model = ReadingList
+        fields = ['id', 'book', 'added_at']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)

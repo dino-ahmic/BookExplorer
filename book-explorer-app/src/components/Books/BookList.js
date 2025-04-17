@@ -17,6 +17,7 @@ import {
   Box,
   Paper,
   Rating,
+  Snackbar
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import debounce from 'lodash/debounce';
@@ -26,6 +27,11 @@ const BookList = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
   
   const [filters, setFilters] = useState({
     title: '',
@@ -35,6 +41,10 @@ const BookList = () => {
   
   const [sortBy, setSortBy] = useState('title');
   const [sortOrder, setSortOrder] = useState('asc');
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const fetchBooks = useCallback(async (searchParams) => {
     try {
@@ -73,6 +83,23 @@ const BookList = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleAddToReadingList = async (bookId) => {
+    try {
+      await api.post(`/reading-list/add/${bookId}/`);
+      setSnackbar({
+        open: true,
+        message: "Book successfully added to your reading list!",
+        severity: 'success'
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Failed to add book to reading list. Please try again.",
+        severity: 'error'
+      });
+    }
   };
 
   return (
@@ -228,6 +255,13 @@ const BookList = () => {
                 >
                   View Details
                 </Button>
+                <Button
+                  size="small"
+                  onClick={() => handleAddToReadingList(book.id)}
+                  color="primary"
+                >
+                  Add to Reading List
+                </Button>
               </CardActions>
             </Card>
           ))}
@@ -238,6 +272,23 @@ const BookList = () => {
           )}
         </Box>
       )}
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+          elevation={6}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

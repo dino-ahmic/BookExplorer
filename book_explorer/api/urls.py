@@ -16,6 +16,10 @@ urlpatterns = [
 
     path('books/<int:book_id>/rate/', views.rate_book, name='rate-book'),
 
+    path('reading-list/', views.get_reading_list, name='get-reading-list'),
+    path('reading-list/add/<int:book_id>/', views.add_to_reading_list, name='add-to-reading-list'),
+    path('reading-list/remove/<int:book_id>/', views.remove_from_reading_list, name='remove-from-reading-list'),
+
     path('auth/register/', views.register_user, name='register'),
     path('auth/login/', views.login_user, name='login'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

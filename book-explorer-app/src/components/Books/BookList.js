@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Grid,
@@ -16,8 +16,10 @@ import {
   InputLabel,
   Box,
   Paper,
+  Rating,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
+import debounce from 'lodash/debounce';
 import api from '../../services/api';
 
 const BookList = () => {
@@ -25,24 +27,25 @@ const BookList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Filter and sort states
   const [filters, setFilters] = useState({
     title: '',
     author: '',
     genre: '',
   });
+  
   const [sortBy, setSortBy] = useState('title');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async (searchParams) => {
     try {
       setLoading(true);
-      const params = {
-        ...filters,
-        sort: sortBy,
-        order: sortOrder,
-      };
-      const response = await api.get('/books/', { params });
+      const response = await api.get('/books/', { 
+        params: {
+          ...searchParams,
+          sort: sortBy,
+          order: sortOrder,
+        }
+      });
       setBooks(response.data);
       setError(null);
     } catch (err) {
@@ -50,43 +53,34 @@ const BookList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sortBy, sortOrder]);
+
+  const debouncedFetch = useCallback(
+    debounce((searchParams) => {
+      fetchBooks(searchParams);
+    }, 500),
+    [fetchBooks]
+  );
 
   useEffect(() => {
-    fetchBooks();
-  }, [filters, sortBy, sortOrder]);
+    debouncedFetch(filters);
+    return () => debouncedFetch.cancel();
+  }, [filters, debouncedFetch]);
 
   const handleFilterChange = (event) => {
     const { name, value } = event.target;
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  if (loading) {
-    return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
-    );
-  }
-
   return (
     <Container maxWidth="lg">
       <Typography variant="h4" component="h1" gutterBottom sx={{ mt: 4, mb: 4 }}>
-       Find your next book
+        Find your next book
       </Typography>
 
-      {/* Filter and Sort Controls */}
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
@@ -97,6 +91,7 @@ const BookList = () => {
               value={filters.title}
               onChange={handleFilterChange}
               size="small"
+              autoComplete="off"
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -107,6 +102,7 @@ const BookList = () => {
               value={filters.author}
               onChange={handleFilterChange}
               size="small"
+              autoComplete="off"
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -117,6 +113,7 @@ const BookList = () => {
               value={filters.genre}
               onChange={handleFilterChange}
               size="small"
+              autoComplete="off"
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -149,58 +146,98 @@ const BookList = () => {
         </Grid>
       </Paper>
 
-      {/* Book List */}
-      <Box sx={{ width: '100%' }}>
-        {books.map((book) => (
-          <Card 
-            key={book.id} 
-            sx={{ 
-              mb: 2,
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              height: '200px', // Fixed height
-            }}
-          >
-            <CardContent sx={{ flex: 1, pb: 0 }}>
-              <Typography variant="h6" component="h2" gutterBottom>
-                {book.title}
-              </Typography>
-              <Typography color="text.secondary" gutterBottom>
-                by {book.author}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Genre: {book.genre}
-              </Typography>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  overflow: 'hidden',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                }}
-              >
-                {book.short_description}
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ 
-              justifyContent: 'center',
-              pb: 2 
-            }}>
-              <Button
-                component={Link}
-                to={`/books/${book.id}`}
-                size="small"
-                color="primary"
-                sx={{ textTransform: 'none' }} 
-              >
-                View Details
-              </Button>
-            </CardActions>
-          </Card>
-        ))}
-      </Box>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : error ? (
+        <Alert severity="error" sx={{ mt: 4 }}>{error}</Alert>
+      ) : (
+        <Box sx={{ width: '100%' }}>
+          {books.map((book) => (
+            <Card 
+              key={book.id} 
+              sx={{ 
+                mb: 2,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '200px',
+              }}
+            >
+              <CardContent sx={{ flex: 1, pb: 0, position: 'relative' }}>
+                <Box 
+                  sx={{ 
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end'
+                  }}
+                >
+                  <div style={{ display: 'flex' }}>
+                    <Rating
+                      value={Number(book.average_rating) || 0}
+                      readOnly
+                      max={1}
+                      size="small"
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      ({book.average_rating ? Number(book.average_rating).toFixed(1) : '0.0'}/10)
+                    </Typography>
+                  </div>
+                  <Typography variant="caption" color="text.secondary">
+                    {book.total_ratings || 0} ratings
+                  </Typography>
+                </Box>
+
+                <Box sx={{ pr: 12 }}>
+                  <Typography variant="h6" component="h2" gutterBottom>
+                    {book.title}
+                  </Typography>
+                  <Typography color="text.secondary" gutterBottom>
+                    by {book.author}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Genre: {book.genre}
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                    }}
+                  >
+                    {book.short_description}
+                  </Typography>
+                </Box>
+              </CardContent>
+              <CardActions sx={{ 
+                justifyContent: 'center',
+                pb: 2 
+              }}>
+                <Button
+                  component={Link}
+                  to={`/books/${book.id}`}
+                  size="small"
+                  color="primary"
+                  sx={{ textTransform: 'none' }}
+                >
+                  View Details
+                </Button>
+              </CardActions>
+            </Card>
+          ))}
+          {books.length === 0 && (
+            <Typography variant="body1" sx={{ textAlign: 'center', mt: 4 }}>
+              No books found matching your criteria.
+            </Typography>
+          )}
+        </Box>
+      )}
     </Container>
   );
 };

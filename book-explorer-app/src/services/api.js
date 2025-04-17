@@ -56,4 +56,9 @@ export const createBookNote = async (bookId, noteData) => {
   return response.data;
 };
 
+export const rateBook = async (bookId, rating) => {
+    const response = await api.post(`/books/${bookId}/rate/`, { rating });
+    return response.data;
+  };
+
 export default api;

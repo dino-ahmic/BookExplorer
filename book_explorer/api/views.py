@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from base.models import Book, BookNote
-from .serializers import BookSerializer, BookNoteSerializer, UserSerializer, UserRegistrationSerializer
+from base.models import Book, BookNote, BookRating
+from .serializers import BookSerializer, BookNoteSerializer, UserSerializer, UserRegistrationSerializer, BookRatingSerializer
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -35,12 +35,12 @@ def getBooks(request):
     
     serializer = BookSerializer(books, many=True)
     return Response(serializer.data)
+
 @api_view(['GET'])
-@permission_classes([AllowAny])
 def getBookById(request, pk):
     try:
         book = Book.objects.get(id=pk)
-        serializer = BookSerializer(book)
+        serializer = BookSerializer(book, context={'request': request})
         return Response(serializer.data)
     except Book.DoesNotExist:
         return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -136,6 +136,53 @@ def delete_note(request, note_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_book(request, book_id):
+    try:
+        book = Book.objects.get(id=book_id)
+        rating = int(request.data.get('rating'))
+        
+        if not 1 <= rating <= 10:
+            return Response(
+                {"error": "Rating must be between 1 and 10"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        existing_rating = BookRating.objects.filter(book=book, user=request.user).first()
+        
+        if existing_rating:
+            old_rating = existing_rating.rating
+            existing_rating.rating = rating
+            existing_rating.save()
+            
+            total_rating = book.average_rating * book.total_ratings
+            new_total = total_rating - old_rating + rating
+            book.average_rating = new_total / book.total_ratings
+            book.save()
+            
+            serializer = BookRatingSerializer(existing_rating)
+            return Response(serializer.data)
+        
+        new_rating = BookRating.objects.create(
+            book=book,
+            user=request.user,
+            rating=rating
+        )
+        
+        total_rating = book.average_rating * book.total_ratings
+        book.total_ratings += 1
+        book.average_rating = (total_rating + rating) / book.total_ratings
+        book.save()
+        
+        serializer = BookRatingSerializer(new_rating)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+    except Book.DoesNotExist:
+        return Response(
+            {"error": "Book not found"}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

@@ -14,6 +14,8 @@ urlpatterns = [
     path('notes/<int:note_id>/update/', views.update_note, name='update-note'),
     path('notes/<int:note_id>/delete/', views.delete_note, name='delete-note'),
 
+    path('books/<int:book_id>/rate/', views.rate_book, name='rate-book'),
+
     path('auth/register/', views.register_user, name='register'),
     path('auth/login/', views.login_user, name='login'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

@@ -1,11 +1,23 @@
 from rest_framework import serializers
-from base.models import Book, BookNote
+from base.models import Book, BookNote, BookRating
 from django.contrib.auth.models import User
 
 class BookSerializer(serializers.ModelSerializer):
+    user_rating = serializers.SerializerMethodField()
+
     class Meta:
         model = Book
         fields = '__all__'
+
+    def get_user_rating(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            try:
+                rating = BookRating.objects.get(book=obj, user=request.user)
+                return rating.rating
+            except BookRating.DoesNotExist:
+                return None
+        return None
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,6 +33,14 @@ class BookNoteSerializer(serializers.ModelSerializer):
         model = BookNote
         fields = ['id', 'book', 'content', 'created_at', 'updated_at', 'user', 'username']
         read_only_fields = ['created_at', 'updated_at', 'user', 'username']
+
+class BookRatingSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = BookRating
+        fields = ['id', 'rating', 'created_at', 'username']
+        read_only_fields = ['created_at', 'username']
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)

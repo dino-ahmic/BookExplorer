@@ -45,39 +45,6 @@ def getBookById(request, pk):
     except Book.DoesNotExist:
         return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def addBook(request):
-    serializer = BookSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def updateBook(request, pk):
-    try:
-        book = Book.objects.get(id=pk)
-        serializer = BookSerializer(book, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def deleteBook(request, pk):
-    try:
-        book = Book.objects.get(id=pk)
-        book.delete()
-        return Response({"message": "Book deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_book_notes(request, book_id):

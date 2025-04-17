@@ -12,63 +12,73 @@ import {
 import api from '../../services/api';
 
 const RegisterForm = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    password2: '',
-    first_name: '',
-    last_name: '',
-  });
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
+    const [formData, setFormData] = useState({
+      username: '',
+      email: '',
+      password: '',
+      password2: '',
+      first_name: '',
+      last_name: '',
     });
-  };
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('/auth/register/', formData);
-      navigate('/login');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
-    }
-  };
+    const handleChange = (e) => {
+        setFormData({
+          ...formData,
+          [e.target.name]: e.target.value,
+        });
+      };
+  
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        await api.post('/auth/register/', formData);
+        navigate('/login');
+      } catch (err) {
+        if (err.response?.data) {
+          const errorMessages = Object.entries(err.response.data)
+            .map(([field, messages]) => {
+              const message = Array.isArray(messages) ? messages.join(', ') : messages;
+              return `${message}`;
+            })
+            .join('\n');
+          setError(errorMessages);
+        } else {
+          setError('Registration failed. Please try again.');
+        }
+      }
+    };
 
   return (
     <Container component="main" maxWidth="xs">
-      <Box
+    <Box
+      sx={{
+        marginTop: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <Paper
+        elevation={3}
         sx={{
-          marginTop: 8,
+          padding: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          width: '100%',
         }}
       >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Typography component="h1" variant="h5" gutterBottom>
-            Sign Up
-          </Typography>
+        <Typography component="h1" variant="h5" gutterBottom>
+          Sign Up
+        </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <TextField

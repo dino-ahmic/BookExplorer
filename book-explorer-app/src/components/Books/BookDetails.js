@@ -18,6 +18,8 @@ import { useParams } from 'react-router-dom';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { format } from 'date-fns';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -28,9 +30,7 @@ const BookDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userRating, setUserRating] = useState(0);
-  
-  // Get current user from localStorage or your auth context
-  const currentUser = JSON.parse(localStorage.getItem('user'));
+  const { user } = useAuth();
 
   const fetchBookAndNotes = async () => {
     try {
@@ -52,6 +52,12 @@ const BookDetails = () => {
   useEffect(() => {
     fetchBookAndNotes();
   }, [id]);
+
+  useEffect(() => {
+    if (!user) {
+      setUserRating(0);
+    }
+  }, [user]);
 
   const handleAddNote = async () => {
     try {
@@ -100,7 +106,7 @@ const BookDetails = () => {
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'MMM d, yyyy');
+      return format(new Date(dateString), 'MMM d, yyyy hh:mm a');
     } catch (error) {
       return dateString;
     }
@@ -153,7 +159,7 @@ const BookDetails = () => {
                 value={userRating}
                 max={10}
                 onChange={handleRating}
-                disabled={!currentUser}
+                disabled={!user}
                 />
                 <Typography variant="body2" sx={{ mt: 1 }}>
                 ({book?.average_rating ? Number(book.average_rating).toFixed(1) : '0.0'}/10)
@@ -161,7 +167,7 @@ const BookDetails = () => {
                 <Typography variant="body2" color="text.secondary">
                 {book?.total_ratings || 0} ratings
                 </Typography>
-                {!currentUser && (
+                {!user && (
                 <Typography variant="caption" color="text.secondary">
                     Please log in to rate
                 </Typography>
@@ -188,27 +194,27 @@ const BookDetails = () => {
             <Typography>
                 <strong>Description:</strong>
                 <br />
-                {book.short_description}
+                {book.about}
             </Typography>
             </Box>
         </CardContent>
         </Card>
 
       {/* Notes Section */}
+      {notes.length > 0 ?
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          Notes
+        <Typography variant="h6" gutterBottom>
+          Reviews
         </Typography>
 
-        {/* Add Note Form */}
-        {currentUser && (
+        {user && (
           <Paper sx={{ p: 2, mb: 3 }}>
             <TextField
               fullWidth
               multiline
               rows={3}
               variant="outlined"
-              placeholder="Add a note..."
+              placeholder="Leave a review..."
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               sx={{ mb: 2 }}
@@ -218,7 +224,7 @@ const BookDetails = () => {
               onClick={handleAddNote}
               disabled={!newNote.trim()}
             >
-              Add Note
+              Submit
             </Button>
           </Paper>
         )}
@@ -268,7 +274,7 @@ const BookDetails = () => {
                     <Typography variant="subtitle2" color="text.secondary">
                       {note.user?.username} - {formatDate(note.created_at)}
                     </Typography>
-                    {currentUser && currentUser.id === note.user?.id && (
+                    {user && user.id === note.user?.id && (
                       <Box>
                         <IconButton
                           size="small"
@@ -292,6 +298,9 @@ const BookDetails = () => {
           ))}
         </Box>
       </Box>
+      : <Typography variant="h6" gutterBottom>
+      This book does not have reviews.
+    </Typography>}
     </Container>
   );
 };

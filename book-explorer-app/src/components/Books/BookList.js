@@ -22,11 +22,13 @@ import {
 import { Link } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -110,7 +112,7 @@ const BookList = () => {
 
       <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Filter by Title"
@@ -118,10 +120,9 @@ const BookList = () => {
               value={filters.title}
               onChange={handleFilterChange}
               size="small"
-              autoComplete="off"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Filter by Author"
@@ -129,10 +130,9 @@ const BookList = () => {
               value={filters.author}
               onChange={handleFilterChange}
               size="small"
-              autoComplete="off"
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Filter by Genre"
@@ -140,11 +140,10 @@ const BookList = () => {
               value={filters.genre}
               onChange={handleFilterChange}
               size="small"
-              autoComplete="off"
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth size="small">
+          <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
+            <FormControl sx={{ width: '170px' }} size="small">
               <InputLabel>Sort By</InputLabel>
               <Select
                 value={sortBy}
@@ -154,11 +153,10 @@ const BookList = () => {
                 <MenuItem value="title">Title</MenuItem>
                 <MenuItem value="author">Author</MenuItem>
                 <MenuItem value="publication_date">Publication Date</MenuItem>
+                <MenuItem value="average_rating">Rating</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth size="small">
+            <FormControl sx={{ width: '150px' }} size="small">
               <InputLabel>Sort Order</InputLabel>
               <Select
                 value={sortOrder}
@@ -255,13 +253,15 @@ const BookList = () => {
                 >
                   View Details
                 </Button>
-                <Button
-                  size="small"
-                  onClick={() => handleAddToReadingList(book.id)}
-                  color="primary"
-                >
-                  Add to Reading List
-                </Button>
+                {user && (
+                    <Button
+                      size="small"
+                      onClick={() => handleAddToReadingList(book.id)}
+                      color="primary"
+                    >
+                      Add to Reading List
+                    </Button>
+                  )}
               </CardActions>
             </Card>
           ))}

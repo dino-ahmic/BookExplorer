@@ -11,7 +11,10 @@ api.interceptors.request.use(
       const token = localStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        delete config.headers.Authorization;
       }
+      
       return config;
     },
     (error) => {
@@ -19,7 +22,7 @@ api.interceptors.request.use(
     }
   );
   
-api.interceptors.response.use(
+  api.interceptors.response.use(
     (response) => response,
     async (error) => {
       if (error.response?.status === 401) {
@@ -31,10 +34,10 @@ api.interceptors.response.use(
     }
   );
 
-export const login = async (credentials) => {
-  const response = await api.post('/auth/login/', credentials);
-  return response.data;
-};
+  export const login = async (credentials) => {
+    const response = await api.post('/auth/login/', credentials);
+    return response.data;
+  };
 
 export const getBooks = async (params) => {
     const response = await api.get('/books/', { params });

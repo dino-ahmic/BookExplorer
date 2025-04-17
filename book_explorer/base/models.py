@@ -11,6 +11,7 @@ class Book(models.Model):
     page_count = models.PositiveIntegerField()
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     total_ratings = models.PositiveIntegerField(default=0)
+    about = models.TextField(default='')
 
     def __str__(self):
         return self.title

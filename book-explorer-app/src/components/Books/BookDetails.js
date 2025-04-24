@@ -18,8 +18,8 @@ import {
 import { useParams } from 'react-router-dom';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { format } from 'date-fns';
-import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { getBookById, getBookNotes, createBookNote, updateBookNote, deleteBookNote, rateBook, addToReadingList } from '../../services/api';
 
 
 const BookDetails = () => {
@@ -45,13 +45,13 @@ const BookDetails = () => {
   const fetchBookAndNotes = async () => {
     try {
       setLoading(true);
-      const [bookResponse, notesResponse] = await Promise.all([
-        api.get(`/books/${id}/`),
-        api.get(`/books/${id}/notes/`)
+      const [book, notes] = await Promise.all([
+        getBookById(id),
+        getBookNotes(id)
       ]);
-      setBook(bookResponse.data);
-      setNotes(notesResponse.data);
-      setUserRating(bookResponse.data.user_rating || 0);
+      setBook(book);
+      setNotes(notes);
+      setUserRating(book.user_rating || 0);
     } catch (err) {
       setError('Failed to fetch book details');
     } finally {
@@ -71,10 +71,8 @@ const BookDetails = () => {
 
   const handleAddNote = async () => {
     try {
-      const response = await api.post(`/books/${id}/notes/create/`, {
-        content: newNote
-      });
-      setNotes([response.data, ...notes]);
+      const response = await createBookNote(id, { content: newNote });
+      setNotes([response, ...notes]);
       setNewNote('');
     } catch (err) {
       setError('Failed to add note');
@@ -83,11 +81,9 @@ const BookDetails = () => {
 
   const handleUpdateNote = async (noteId) => {
     try {
-      const response = await api.put(`/notes/${noteId}/update/`, {
-        content: editingNote.content
-      });
+      const updatedNote = await updateBookNote(noteId, {content: editingNote.content});
       setNotes(notes.map(note => 
-        note.id === noteId ? response.data : note
+        note.id === noteId ? updatedNote : note
       ));
       setEditingNote(null);
     } catch (err) {
@@ -97,7 +93,7 @@ const BookDetails = () => {
 
   const handleDeleteNote = async (noteId) => {
     try {
-      await api.delete(`/notes/${noteId}/delete/`);
+      await deleteBookNote(noteId);
       setNotes(notes.filter(note => note.id !== noteId));
     } catch (err) {
       setError('Failed to delete note');
@@ -106,7 +102,7 @@ const BookDetails = () => {
 
   const handleRating = async (event, newValue) => {
     try {
-      await api.post(`/books/${id}/rate/`, { rating: newValue });
+      await rateBook(id, newValue);
       setUserRating(newValue);
       fetchBookAndNotes();
     } catch (err) {
@@ -116,7 +112,7 @@ const BookDetails = () => {
 
   const handleAddToReadingList = async () => {
     try {
-      await api.post(`/reading-list/add/${id}/`);
+      await addToReadingList(id);
       setSnackbar({
         open: true,
         message: "Book successfully added to your reading list!",

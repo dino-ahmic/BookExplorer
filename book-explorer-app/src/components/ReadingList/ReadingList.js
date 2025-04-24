@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
+import { getReadingList, removeFromReadingList } from '../../services/api';
 
 const ReadingList = () => {
   const [readingList, setReadingList] = useState([]);
@@ -32,8 +33,8 @@ const ReadingList = () => {
   const fetchReadingList = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/reading-list/');
-      setReadingList(response.data);
+      const response = await getReadingList();
+      setReadingList(response);
       setError(null);
     } catch (err) {
       setError('Failed to fetch reading list. Please try again later.');
@@ -48,7 +49,7 @@ const ReadingList = () => {
 
   const handleRemoveFromList = async (bookId) => {
     try {
-      await api.delete(`/reading-list/remove/${bookId}/`);
+      await removeFromReadingList(bookId);
       setReadingList(readingList.filter(item => item.book.id !== bookId));
       setSnackbar({
         open: true,

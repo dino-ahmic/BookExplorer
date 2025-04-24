@@ -10,7 +10,7 @@ import {
   Alert,
   Paper,
 } from '@mui/material';
-import api from '../../services/api';
+import { loginApi } from '../../services/api';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -36,10 +36,8 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login/', formData);
-      const { user, access } = response.data;
-
-      api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      const response = await loginApi(formData);
+      const { user, access } = response;
 
       login(user, access);
 

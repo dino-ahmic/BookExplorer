@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   Box,
   TextField,
@@ -9,7 +10,7 @@ import {
   Alert,
   Paper
 } from '@mui/material';
-import api from '../../services/api';
+import { register } from '../../services/api';
 
 const RegisterForm = () => {
     const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const RegisterForm = () => {
     });
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         setFormData({
@@ -33,8 +35,11 @@ const RegisterForm = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        await api.post('/auth/register/', formData);
-        navigate('/login');
+        var response = await register(formData);
+        const { user, access } = response;
+
+        login(user, access);
+        navigate('/books');
       } catch (err) {
         if (err.response?.data) {
           const errorMessages = Object.entries(err.response.data)

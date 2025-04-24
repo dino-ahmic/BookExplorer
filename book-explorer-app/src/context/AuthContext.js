@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -18,6 +19,8 @@ export const AuthProvider = ({ children }) => {
     setToken(accessToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', accessToken);
+
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
   };
 
   const logout = () => {

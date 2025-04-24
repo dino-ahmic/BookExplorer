@@ -21,9 +21,9 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import debounce from 'lodash/debounce';
-import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import ClearIcon from '@mui/icons-material/Clear';
+import { getBooks, addToReadingList } from '../../services/api';
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
@@ -52,14 +52,12 @@ const BookList = () => {
   const fetchBooks = useCallback(async (searchParams) => {
     try {
       setLoading(true);
-      const response = await api.get('/books/', { 
-        params: {
-          ...searchParams,
-          sort: sortBy,
-          order: sortOrder,
-        }
+      const data = await getBooks({ 
+        ...searchParams,
+        sort: sortBy,
+        order: sortOrder,
       });
-      setBooks(response.data);
+      setBooks(data);
       setError(null);
     } catch (err) {
       setError('Failed to fetch books. Please try again later.');
@@ -90,7 +88,7 @@ const BookList = () => {
 
   const handleAddToReadingList = async (bookId) => {
     try {
-      await api.post(`/reading-list/add/${bookId}/`);
+      await addToReadingList(bookId);
       setSnackbar({
         open: true,
         message: "Book successfully added to your reading list!",
